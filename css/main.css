@@ -57,11 +57,23 @@ input:disabled {
 
 .input-table .unit {
   position: relative;
-  width: 20.0em;
-  left: -21.8em;
+  width: 15.0em;
+  left: -15.7em;
   top: 0.1em;
   text-align: right;
   color: gray;
   font-size: 0.9em;
   pointer-events: none;
+}
+
+/* Chrome, Safari, Edge, Opera */
+.input-table input::-webkit-outer-spin-button,
+.input-table input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.input-table input[type=number] {
+  -moz-appearance: textfield;
 }
