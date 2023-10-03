@@ -1,0 +1,67 @@
+* {
+  font-family: sans-serif;
+  color: #333333;
+}
+
+body {
+  padding: 8pt 16pt;
+}
+
+#title {
+  position: relative;
+}
+
+.prelim {
+  position:absolute;
+  color: red;
+  font-weight: 600;
+  font-size: 0.6em;
+  transform: translate(-0.5em, -0.7em) rotate(-7deg);
+}
+
+div#etc {
+  max-width: 34em;
+}
+
+fieldset {
+  margin-bottom: 1em;
+}
+
+.input-table {
+  display: grid;
+  grid-row-gap: 0.5em;
+  grid: auto auto / 12em auto 0;
+}
+
+.input-table input {
+  border: solid 2px lightgray;
+  padding: 0.1em 0.5em;
+}
+
+input:invalid {
+  background-color: lightpink;
+  border: solid 2px lightcoral;
+}
+
+input:disabled {
+  color: lightgray;
+}
+
+#etc-output
+input:disabled {
+  background-color: transparent;
+  color: #333333;
+  border: none;
+  border-bottom: 2px dotted lightgray;
+}
+
+.input-table .unit {
+  position: relative;
+  width: 20.0em;
+  left: -21.5em;
+  top: 0.1em;
+  text-align: right;
+  color: gray;
+  font-size: 0.9em;
+  pointer-events: none;
+}
