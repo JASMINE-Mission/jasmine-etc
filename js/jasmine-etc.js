@@ -23,7 +23,7 @@ var etc = new Vue({
 
   data: {
     N0: 1.0,
-    J: 12.86,
+    J: 12.50,
     JH: 2.0,
     exptime: 12.5,
     throughput: 0.5,
