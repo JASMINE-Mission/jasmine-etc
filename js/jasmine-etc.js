@@ -65,7 +65,7 @@ var etc = new Vue({
 
     pxd: 1e-5,
     efl: 4.3704,
-    fullwell: 10e3,
+    fullwell: 100e3,
 
     s0: 2.20,
     s1: 6.247,
