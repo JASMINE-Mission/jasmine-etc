@@ -173,12 +173,14 @@ var etc = new Vue({
             type: 'scatter',
             name: 'S/N',
             yaxis: 'y2',
+            marker: { size: 8, symbol: 'circle' },
           }, {
             x: this.mag_array,
             y: sigma,
             type: 'scatter',
             name: 'σexp',
             yaxis: 'y1',
+            marker: { size: 8, symbol: 'square' },
           },
         ],
         layout: {
