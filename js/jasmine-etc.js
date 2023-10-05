@@ -210,6 +210,8 @@ var etc = new Vue({
           },
           legend: {
             font: { size: 12 },
+            x: 1, y: 1,
+            xanchor: 'right',
           },
         },
         config: {
