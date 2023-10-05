@@ -38,7 +38,7 @@ fieldset {
   padding: 0.1em 0.5em;
 }
 
-input:invalid {
+input[data-invalid] {
   background-color: lightpink;
   border: solid 2px lightcoral;
 }
@@ -48,11 +48,18 @@ input:disabled {
 }
 
 #etc-output
-input:disabled {
+input:read-only {
   background-color: transparent;
   color: #333333;
   border: none;
   border-bottom: 2px dotted lightgray;
+  user-select: text;
+  outline: none;
+}
+#etc-output
+input[data-invalid] {
+  background-color: lightpink;
+  border: none;
 }
 
 .input-table .unit {

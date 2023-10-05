@@ -1,19 +1,45 @@
 Vue.component('etc-input', {
-  template: `<input :step="step"
+  template: `<input
+    type="number"
+    :step="step"
+    :data-invalid="invalid"
     v-bind:value="fixed(value, precision)"
-    @change="$emit('input', parseFloat($event.target.value))">
+    @change="$emit('input', parseFloat($event.target.value))"
+    required>
   </input>`,
   props: {
     value: Number,
     precision: { default: 2 },
+    min: {},
+    max: {},
   },
+
   methods: {
-    fixed: (v,n) => parseFloat(v).toFixed(n)
+    fixed: (v,n) => parseFloat(v).toFixed(n),
+    isNum: (v) => Number.isFinite(parseFloat(v)),
   },
+
   computed: {
     step: function() {
-      return Math.pow(10, -this.precision)
+      console.log([this.min, this.max]);
+      return Math.pow(10, -this.precision);
     },
+
+    invalid_l: function() {
+      if (!this.isNum(this.value)) return true;
+      if (!this.isNum(this.min)) return false;
+      return (this.value < this.min);
+    },
+
+    invalid_h: function() {
+      if (!this.isNum(this.value)) return true;
+      if (!this.isNum(this.max)) return false;
+      return (this.value > this.max);
+    },
+
+    invalid: function() {
+      return this.invalid_l || this.invalid_h;
+    }
   }
 });
 
@@ -37,6 +63,7 @@ var etc = new Vue({
 
     pxd: 1e-5,
     efl: 4.3704,
+    fullwell: 100000,
 
     s0: 2.20,
     s1: 6.247,
@@ -87,6 +114,10 @@ var etc = new Vue({
 
     total_photon: function() {
       return this.get_photon(this.Hw) * this.exptime
+    },
+
+    peak_photon: function() {
+      return this.total_photon / this.pixel_area;
     },
 
     pixel_scale: function() {
