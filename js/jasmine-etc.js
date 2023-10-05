@@ -71,7 +71,7 @@ var etc = new Vue({
     s1: 6.247,
     s2: 0.14233,
 
-    mag_array: Array(10).fill(0).map((_,i)=>10+0.5*i),
+    mag_array: Array(11).fill(0).map((_,i)=>10+0.5*i),
   },
 
   methods: {
