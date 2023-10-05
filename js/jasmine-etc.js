@@ -228,7 +228,7 @@ var etc = new Vue({
     array: function(u,o) {
       let data = document.getElementById('etc-data');
       var event = new Event('change')
-      data.dispatchEvent(event);
+      setTimeout(() => data.dispatchEvent(event), 1e-3);
     },
   },
 });
