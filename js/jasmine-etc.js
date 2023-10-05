@@ -194,7 +194,7 @@ var etc = new Vue({
             title: 'Positional Accuracy (mas)',
             font: { size: 18 },
             zeroline: false,
-            mode: 'tozero',
+            rangemode: 'tozero',
             domain: [0.0, 0.48],
           },
           yaxis2: {
