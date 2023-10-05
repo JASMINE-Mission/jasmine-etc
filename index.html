@@ -32,107 +32,139 @@
   </h1>
 
   <div id="etc">
-    <form id="etc-input" name="etc-input">
-      <fieldset>
-        <legend>Source</legend>
-        <div class="input-table">
-          <label>J-band magnitude</label>
-          <etc-input v-model="J"
-           min="0.0" max="18.0"></etc-input>
+    <section id="app-panel">
+      <form id="etc-input" name="etc-input">
+        <fieldset>
+          <legend>Source</legend>
+          <div class="input-table">
+            <label>J-band magnitude</label>
+            <etc-input v-model="J"
+             min="0.0" max="18.0"></etc-input>
+            <span class="unit">mag</span>
+
+            <label>J-H color</label>
+            <etc-input v-model="JH"
+             min="-5.0" max="10.0"></etc-input>
+            <span class="unit">mag</span>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Instrument</legend>
+          <div class="input-table">
+            <label>Exposure time</label>
+            <etc-input v-model="exptime" precision="1"
+             min="1.0"></etc-input>
+            <span class="unit">s</span>
+
+            <label>PSF FWHM</label>
+            <etc-input v-model="fwhm" precision="3"
+             min="0.0"></etc-input>
+            <span class="unit">arcsec</span>
+
+            <label>&sigma;<sub>ACE</sub></label>
+            <etc-input v-model="sigace" precision="3"
+             min="0.0"></etc-input>
+            <span class="unit">arcsec</span>
+
+            <label>Readout noise</label>
+            <etc-input v-model="readout" precision="1"
+             min="0.0"></etc-input>
+            <span class="unit">electron</span>
+
+            <label>Dark Current</label>
+            <etc-input v-model="dark" precision="1"
+             min="0.0"></etc-input>
+            <span class="unit">electron/pix/s</span>
+
+            <label>Flat-fielding error</label>
+            <etc-input v-model="flat" precision="1"
+             min="0.0" max="5.0"></etc-input>
+            <span class="unit">%</span>
+          </div>
+
+          <button type="button" class="expand"
+              :class="{active: advanced}"
+              @click="advanced = !advanced">
+            Advanced
+          </button>
+          <div class="input-table hidden-panel"
+              :class="{active: advanced}">
+            <label>Total throughput</label>
+            <etc-input v-model="throughput"
+             min="0.0" max="1.0"></etc-input>
+            <span class="unit"></span>
+
+            <label>Stray light</label>
+            <etc-input v-model="stray" precision="1"
+             min="0.0"></etc-input>
+            <span class="unit">electron/pix/s</span>
+
+            <label>Diffuse background</label>
+            <etc-input v-model="diffuse" precision="1"
+             min="0.0"></etc-input>
+            <span class="unit">electron/pix/s</span>
+          </div>
+        </fieldset>
+      </form>
+
+      <form id="etc-output" name="etc-output">
+        <fieldset class="input-table">
+          <legend>Output</legend>
+
+          <label>Hw-band magnitude</label>
+          <etc-input v-model="Hw" readonly></etc-input>
           <span class="unit">mag</span>
 
-          <label>J-H color</label>
-          <etc-input v-model="JH"
-           min="-5.0" max="10.0"></etc-input>
-          <span class="unit">mag</span>
-        </div>
-      </fieldset>
+          <label>Photon</label>
+          <etc-input v-model="total_photon"
+          readonly></etc-input>
+          <span class="unit">photon</span>
 
-      <fieldset>
-        <legend>Instrument</legend>
-        <div class="input-table">
-          <label>Exposure time</label>
-          <etc-input v-model="exptime" precision="1"
-           min="1.0"></etc-input>
-          <span class="unit">s</span>
+          <label>Peak photon</label>
+          <etc-input v-model="peak_photon"
+          :max="fullwell" readonly></etc-input>
+          <span class="unit">photon</span>
 
-          <label>Total throughput</label>
-          <etc-input v-model="throughput"
-           min="0.0" max="1.0"></etc-input>
+          <label>SN ratio</label>
+          <etc-input v-model="sn_ratio"
+          readonly></etc-input>
           <span class="unit"></span>
 
-          <label>PSF FWHM</label>
-          <etc-input v-model="fwhm" precision="3"
-           min="0.0"></etc-input>
-          <span class="unit">arcsec</span>
+          <label>&sigma;<sub>exp,one</sub></label>
+          <etc-input v-model="sig_exp"
+          readonly></etc-input>
+          <span class="unit">mas</span>
+        </fieldset>
+      </form>
+      <ul>
+        <li>The aperture size is tentatively fixed to 3&times;3 pixels.</li>
+        <li>The PSF shape is not considered yet.</li>
+        <li>The flat-fielding error is not implemented yet.</li>
+        <li>The pixel-phase error is not implemented.</li>
+      </ul>
+      <input id="etc-data" type="hidden" :value="JSON.stringify(array)" />
+    </section>
+    <script src='js/jasmine-etc.js'></script>
 
-          <label>&sigma;<sub>ACE</sub></label>
-          <etc-input v-model="sigace" precision="3"
-           min="0.0"></etc-input>
-          <span class="unit">arcsec</span>
+    <section id="graph">
+      <div id="canvas"></div>
+      <script>
+        let elem = document.getElementById('etc-data');
+        let data = JSON.parse(elem.value);
+        Plotly.newPlot('canvas', data);
 
-          <label>Readout noise</label>
-          <etc-input v-model="readout" precision="1"
-           min="0.0"></etc-input>
-          <span class="unit">electron</span>
+        update_canvas = function() {
+          let elem = document.getElementById('etc-data');
+          let data = JSON.parse(elem.value);
+          Plotly.react('canvas', data);
+        };
 
-          <label>Dark Current</label>
-          <etc-input v-model="dark" precision="1"
-           min="0.0"></etc-input>
-          <span class="unit">electron/pix/s</span>
-
-          <label>Stray light</label>
-          <etc-input v-model="stray" precision="1"
-           min="0.0"></etc-input>
-          <span class="unit">electron/pix/s</span>
-
-          <label>Diffuse background</label>
-          <etc-input v-model="diffuse" precision="1"
-           min="0.0"></etc-input>
-          <span class="unit">electron/pix/s</span>
-
-          <label>Flat-fielding error</label>
-          <etc-input v-model="flat" precision="1"
-           min="0.0" max="5.0"></etc-input>
-          <span class="unit">%</span>
-        </div>
-      </fieldset>
-    </form>
-
-    <form id="etc-output" name="etc-output">
-      <fieldset class="input-table">
-        <legend>Output</legend>
-
-        <label>Hw-band magnitude</label>
-        <etc-input v-model="Hw" readonly></etc-input>
-        <span class="unit">mag</span>
-
-        <label>Photon</label>
-        <etc-input v-model="total_photon"
-         readonly></etc-input>
-        <span class="unit">photon</span>
-
-        <label>Peak photon</label>
-        <etc-input v-model="peak_photon"
-        :max="fullwell" readonly></etc-input>
-        <span class="unit">photon</span>
-
-        <label>SN ratio</label>
-        <etc-input v-model="sn_ratio"
-         readonly></etc-input>
-        <span class="unit"></span>
-
-        <label>&sigma;<sub>exp,one</sub></label>
-        <etc-input v-model="sig_exp"
-        readonly></etc-input>
-        <span class="unit">mas</span>
-      </fieldset>
-    </form>
-    <ul>
-      <li>Currently the aperture size is fixed to 3&times;3 pixels.</li>
-      <li>Flat-fielding error is not implemented yet.</li>
-    </ul>
+        let src = document.getElementById('etc-data');
+        src.addEventListener('change', update_canvas);
+      </script>
+    </section>
   </div>
-  <script src='js/jasmine-etc.js'></script>
+
 </body>
 </html>
