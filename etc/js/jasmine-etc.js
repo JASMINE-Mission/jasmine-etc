@@ -21,7 +21,6 @@ Vue.component('etc-input', {
 
   computed: {
     step: function() {
-      console.log([this.min, this.max]);
       return Math.pow(10, -this.precision);
     },
 
@@ -45,12 +44,12 @@ Vue.component('etc-input', {
 
 
 var etc = new Vue({
-  el: '#etc',
+  el: '#app-panel',
 
   data: {
     N0: 1.0,
     J: 12.50,
-    JH: 2.0,
+    JH: 0.0,
     exptime: 12.5,
     throughput: 0.5,
     sigpsf: 360e-3,
@@ -61,17 +60,21 @@ var etc = new Vue({
     diffuse: 0.0,
     flat: 1.0,
 
+    advanced: false,
+
     pxd: 1e-5,
     efl: 4.3704,
-    fullwell: 100000,
+    fullwell: 10e3,
 
     s0: 2.20,
     s1: 6.247,
     s2: 0.14233,
+
+    mag_array: Array(10).fill(0).map((_,i)=>10+0.5*i),
   },
 
   methods: {
-    get_photon: function(Hw) {
+    get_flux: function(Hw) {
       /** convert Hw magnitude to photon
        * the J-band photon flux in
        *   - https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
@@ -84,14 +87,30 @@ var etc = new Vue({
     },
 
     get_sigexp: function(Hw) {
-      let Np = this.get_photon(Hw) / this.get_photon(12.5);
+      let Np = this.get_flux(Hw) / this.get_flux(12.5);
       let S0 = Math.pow(this.s0 * this.flat, 2.0);
       let sig = this.total_sigma;
       let npp = 2 * Math.pow(this.readout, 2) + this.background * this.exptime;
       let S1 = Math.pow(this.s1, 2) * Math.pow(sig, 2);
       let S2 = Math.pow(this.s2, 2) * Math.pow(sig, 3) * npp;
       return Math.sqrt(S0 + S1/Np + S2/Np/Np);
-    }
+    },
+
+    get_photon: function(Hw) {
+      return this.get_flux(Hw) * this.exptime;
+    },
+
+    get_noise: function(Hw) {
+      let s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
+      let ne = this.background * this.pixel_area * this.exptime;
+      let se = this.get_photon(Hw);
+      return Math.sqrt(s2 + ne + se)
+
+    },
+
+    get_snratio: function(Hw) {
+      return this.get_photon(Hw) / this.get_noise(Hw);
+    },
   },
 
   computed: {
@@ -113,7 +132,7 @@ var etc = new Vue({
     },
 
     total_photon: function() {
-      return this.get_photon(this.Hw) * this.exptime
+      return this.get_photon(this.Hw);
     },
 
     peak_photon: function() {
@@ -133,10 +152,7 @@ var etc = new Vue({
     },
 
     total_noise: function() {
-      let s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
-      let ne = this.background * this.pixel_area * this.exptime;
-      let se = this.total_photon;
-      return Math.sqrt(s2 + ne + se)
+      return this.get_noise(this.Hw)
     },
 
     sn_ratio: function() {
@@ -145,6 +161,72 @@ var etc = new Vue({
 
     sig_exp: function() {
       return this.get_sigexp(this.Hw);
+    },
+
+    array: function() {
+      let sigma = this.mag_array.map((_,i) => this.get_sigexp(_));
+      let snr = this.mag_array.map((_,i) => this.get_snratio(_));
+      return {
+         data: [{
+            x: this.mag_array,
+            y: snr,
+            type: 'scatter',
+            name: 'S/N',
+            yaxis: 'y2',
+          }, {
+            x: this.mag_array,
+            y: sigma,
+            type: 'scatter',
+            name: 'σexp',
+            yaxis: 'y1',
+          },
+        ],
+        layout: {
+          height: 800,
+          xaxis: {
+            title: 'Hw-band magnitude (mag)',
+            font: { size: 18 },
+            zeroline: false,
+          },
+          yaxis: {
+            title: 'Positional Accuracy (mas)',
+            font: { size: 18 },
+            zeroline: false,
+            domain: [0.0, 0.48],
+            type: 'log',
+          },
+          yaxis2: {
+            title: 'Signal to noise ratio',
+            font: { size: 18 },
+            mode: 'tozero',
+            zeroline: false,
+            domain: [0.52, 1.00],
+          },
+          margin: {
+            l: 60, t: 0, r: 60, b: 60,
+          },
+          legend: {
+            font: { size: 12 },
+            x: 0.0,
+            xref: 'paper',
+          },
+        },
+        config: {
+          scrollZoom: false,
+          modeBarButtonsToRemove: [
+            'zoom2d', 'pan2d', 'select2d', 'lasso2d', 'autoscale',
+            'zoomIn2d', 'zoomOut2d',
+          ],
+        }
+      }
+    },
+  },
+
+  watch: {
+    array: function(u,o) {
+      let data = document.getElementById('etc-data');
+      var event = new Event('change')
+      data.dispatchEvent(event);
     },
   },
 });

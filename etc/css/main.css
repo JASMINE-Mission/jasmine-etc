@@ -19,8 +19,10 @@ body {
   transform: translate(-0.5em, -0.7em) rotate(-7deg);
 }
 
-div#etc {
-  max-width: 34em;
+#etc {
+  display: grid;
+  grid: auto / 34em auto;
+  max-width: 1200px;
 }
 
 fieldset {
@@ -73,6 +75,54 @@ input[data-invalid] {
   pointer-events: none;
 }
 
+.expand {
+  display: inline-block;
+  margin: 8pt 0px 0pt;
+  width: 100%;
+  padding: 3pt 0 0;
+  background-color: transparent;
+  color: #666;
+  cursor: pointer;
+  text-align: left;
+  border: none;
+  outline: none;
+}
+
+.expand.active {
+  padding: 3pt 0 6pt;
+}
+
+.expand:hover {
+  text-decoration: underline;
+}
+
+.expand:after {
+  position: relative;
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 6pt;
+  float: right;
+  top: 2pt;
+  transition: 0.5s;
+}
+
+.expand.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  transform: rotate(45deg);
+}
+
+.hidden-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 2s ease-out;
+}
+
+.hidden-panel.active {
+  max-height: none;
+  overflow: visible;
+  transition: max-height 2s ease-out;
+}
+
 /* Chrome, Safari, Edge, Opera */
 .input-table input::-webkit-outer-spin-button,
 .input-table input::-webkit-inner-spin-button {
@@ -83,4 +133,8 @@ input[data-invalid] {
 /* Firefox */
 .input-table input[type=number] {
   -moz-appearance: textfield;
+}
+
+#input ul {
+  padding-left: 0.8em;
 }
