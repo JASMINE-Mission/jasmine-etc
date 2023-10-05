@@ -2,6 +2,7 @@ Vue.component('etc-input', {
   template: `<input
     type="number"
     :step="step"
+    :min="min" :max="max"
     :data-invalid="invalid"
     v-bind:value="fixed(value, precision)"
     @change="$emit('input', parseFloat($event.target.value))"
