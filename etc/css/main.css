@@ -19,6 +19,10 @@ body {
   transform: translate(-0.5em, -0.7em) rotate(-7deg);
 }
 
+#psf-canvas {
+  margin: 0.6em;
+}
+
 #etc {
   display: grid;
   grid: auto / 34em auto;
@@ -135,6 +139,6 @@ input[data-invalid] {
   -moz-appearance: textfield;
 }
 
-#input ul {
-  padding-left: 0.8em;
+#etc ul {
+  padding-left: 1.0em;
 }

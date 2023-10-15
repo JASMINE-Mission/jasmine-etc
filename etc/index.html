@@ -24,6 +24,7 @@
   <meta name='viewport' content='width=device-width, initial-scale=1'>
   <link rel='stylesheet' type='text/css' media='screen' href='css/main.css'>
   <script src='https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js'></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.2/lib/browser/math.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
 </head>
 <body>
@@ -59,7 +60,7 @@
 
             <label>PSF FWHM</label>
             <etc-input v-model="fwhm" precision="3"
-             min="0.0"></etc-input>
+             min="0.0" max="2.0"></etc-input>
             <span class="unit">arcsec</span>
 
             <label>&sigma;<sub>ACE</sub></label>
@@ -135,15 +136,19 @@
           <etc-input v-model="sig_exp"
           readonly></etc-input>
           <span class="unit">mas</span>
+
+          <label>Simulated image</label>
+          <div>
+            <canvas id="psf-canvas" width="300" height="300"></canvas>
+          </div>
+          <span class="unit"></span>
         </fieldset>
       </form>
       <ul>
-        <li>The aperture size is tentatively fixed to 3&times;3 pixels.</li>
-        <li>The PSF shape is not considered yet.</li>
         <li>The flat-fielding error is not implemented yet.</li>
         <li>The pixel-phase error is not implemented.</li>
       </ul>
-      <input id="etc-data" type="hidden" :value="JSON.stringify(array)" />
+      <input id="etc-data" type="hidden" :value="JSON.stringify(data_array)" />
     </section>
     <script src='js/jasmine-etc.js'></script>
 
