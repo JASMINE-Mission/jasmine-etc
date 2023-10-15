@@ -44,7 +44,7 @@ Vue.component('etc-input', {
 });
 
 
-var etc = new Vue({
+let etc = new Vue({
   el: '#app-panel',
 
   data: {
@@ -65,16 +65,27 @@ var etc = new Vue({
 
     pxd: 1e-5,
     efl: 4.3704,
-    fullwell: 100e3,
+    fullwell: 1e5,
+    gain: 3.3,
 
     s0: 2.20,
     s1: 6.247,
     s2: 0.14233,
 
+    nx: Array(15).fill().map((e, i) => -7 + i),
+    ny: Array(15).fill().map((e, i) => -7 + i),
     mag_array: Array(11).fill(0).map((_,i)=>10+0.5*i),
   },
 
   methods: {
+    cdf: (x,s) => 0.5 + 0.5 * math.erf(x / Math.sqrt(2*s)),
+
+    randn: () => {
+      const logu = Math.sqrt(-2.0 * Math.log(1.0 - Math.random()));
+      const cosv = Math.cos(2.0 * Math.PI * Math.random());
+      return logu * cosv;
+    },
+
     get_flux: function(Hw) {
       /** convert Hw magnitude to photon
        * the J-band photon flux in
@@ -88,13 +99,14 @@ var etc = new Vue({
     },
 
     get_sigexp: function(Hw) {
-      let Np = this.get_flux(Hw) / this.get_flux(12.5);
-      let S0 = Math.pow(this.s0 * this.flat, 2.0);
-      let sig = this.total_sigma;
-      let npp = 2 * Math.pow(this.readout, 2) + this.background * this.exptime;
-      let S1 = Math.pow(this.s1, 2) * Math.pow(sig, 2);
-      let S2 = Math.pow(this.s2, 2) * Math.pow(sig, 3) * npp;
-      return Math.sqrt(S0 + S1/Np + S2/Np/Np);
+      const Np = this.get_flux(Hw) / this.get_flux(12.5);
+      const S0 = Math.pow(this.s0 * this.flat, 2.0);
+      const sig = this.total_sigma;
+      const sr = 2 * Math.pow(this.readout, 2);
+      const sc = this.background * this.exptime;
+      const S1 = Math.pow(this.s1, 2) * Math.pow(sig, 2);
+      const S2 = Math.pow(this.s2, 2) * Math.pow(sig, 3) * (sr + sc);
+      return Math.sqrt(S0 + S1 / Np + S2 / Np / Np);
     },
 
     get_photon: function(Hw) {
@@ -105,12 +117,71 @@ var etc = new Vue({
       let s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
       let ne = this.background * this.pixel_area * this.exptime;
       let se = this.get_photon(Hw);
-      return Math.sqrt(s2 + ne + se)
-
+      return Math.sqrt(s2 + ne + se);
     },
 
     get_snratio: function(Hw) {
       return this.get_photon(Hw) / this.get_noise(Hw);
+    },
+
+    get_photon_array: function(Hw) {
+      let array = [...Array(15)].map(e => Array(15).fill());
+
+      const N = this.get_photon(Hw);
+      const w = this.total_sigma / this.pixel_scale;
+      for (let [j, y] of this.ny.entries()) {
+        for (let [i, x] of this.nx.entries()) {
+          const fy = this.cdf(y + 0.5, w) - this.cdf(y - 0.5, w);
+          const fx = this.cdf(x + 0.5, w) - this.cdf(x - 0.5, w);
+          array[j][i] = N * fy * fx;
+        }
+      }
+      return array;
+    },
+
+    add_noise: function(photon) {
+      const rn = 2 * Math.pow(this.readout, 2);
+      const bn = this.background * this.exptime;
+      const randn = this.randn;
+      const flat = this.flat;
+      return [...photon].map(e => e.map(function(e) {
+          const fp = 1.0 + (flat / 100) * randn();
+          return fp * e + Math.sqrt(rn + bn) * randn();
+      }));
+    },
+
+    get_adu: function(electron) {
+      const emax = this.fullwell;
+      const gain = this.gain;
+      return [...electron].map(e => e.map(function(e) {
+        return Math.floor(Math.min(e, emax) / gain);
+      }));
+    },
+
+    get_RGB_array: function(adu) {
+      const nmax = Math.max(...adu.flat());
+      const nmin = Math.min(...adu.flat());
+      return [...adu].map(e => e.map(function(e) {
+        const v = Math.floor(255 * (e - nmin)/(nmax - nmin));
+        return `rgb(${v},${v},${v})`;
+      }));
+    },
+
+    drawPSF: function(rgb) {
+      const canvas = document.getElementById('psf-canvas');
+      const width = canvas.width;
+      const blk = width / 15;
+
+      let ctx = canvas.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, width, width);
+
+      for (let j in this.ny) {
+        for (let i in this.nx) {
+          ctx.fillStyle = rgb[j][i];
+          ctx.fillRect(i * blk, j * blk, blk, blk);
+        }
+      }
     },
   },
 
@@ -128,6 +199,18 @@ var etc = new Vue({
       }
     },
 
+    photon_array: function() {
+      return this.get_photon_array(this.Hw);
+    },
+
+    adu_array: function() {
+      return this.get_adu(this.add_noise(this.photon_array));
+    },
+
+    rgb_array: function() {
+      return this.get_RGB_array(this.adu_array);
+    },
+
     total_sigma: function() {
       return Math.sqrt(this.sigpsf**2 + this.sigace**2);
     },
@@ -137,7 +220,7 @@ var etc = new Vue({
     },
 
     peak_photon: function() {
-      return this.total_photon / this.pixel_area;
+      return Math.max(...this.photon_array.flat());
     },
 
     pixel_scale: function() {
@@ -145,7 +228,9 @@ var etc = new Vue({
     },
 
     pixel_area: function() {
-      return 3 * 3;
+      const sigpix = this.total_sigma / this.pixel_scale;
+      const aper = 2 * Math.sqrt(8 * Math.LN2) * sigpix;
+      return 4 * Math.PI * aper * aper;
     },
 
     background: function() {
@@ -157,16 +242,16 @@ var etc = new Vue({
     },
 
     sn_ratio: function() {
-      return this.total_photon / this.total_noise;
+      return this.get_snratio(this.Hw);
     },
 
     sig_exp: function() {
       return this.get_sigexp(this.Hw);
     },
 
-    array: function() {
-      let sigma = this.mag_array.map((_,i) => this.get_sigexp(_));
-      let snr = this.mag_array.map((_,i) => this.get_snratio(_));
+    data_array: function() {
+      const sigma = this.mag_array.map(_ => this.get_sigexp(_));
+      const snr = this.mag_array.map(_ => this.get_snratio(_));
       return {
          data: [{
             x: this.mag_array,
@@ -226,10 +311,18 @@ var etc = new Vue({
   },
 
   watch: {
-    array: function(u,o) {
-      let data = document.getElementById('etc-data');
-      var event = new Event('change')
+    data_array: function(u, o) {
+      const data = document.getElementById('etc-data');
+      let event = new Event('change')
       setTimeout(() => data.dispatchEvent(event), 1e-3);
     },
+
+    rgb_array: function(u, o) {
+      this.drawPSF(u);
+    },
+  },
+
+  mounted: function() {
+    this.drawPSF(this.rgb_array);
   },
 });
