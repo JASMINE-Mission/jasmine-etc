@@ -52,7 +52,7 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    throughput: 1.0,
+    throughput: 0.5,
     sigpsf: 360e-3,
     sigace: 275e-3,
     readout: 15.0,
@@ -108,7 +108,7 @@ let etc = new Vue({
     },
 
     get_sigexp: function(Hw) {
-      const Np = this.get_net_flux(Hw) / this.get_flux(12.5);
+      const Np = this.get_net_flux(Hw) / (0.5 * this.get_flux(12.5));
       const S0 = Math.pow(this.s0 * this.flat, 2.0);
       const sig = this.total_sigma;
       const sr = 2 * Math.pow(this.readout, 2);
