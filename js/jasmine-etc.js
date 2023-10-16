@@ -52,7 +52,7 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    throughput: 0.5,
+    throughput: 1.0,
     sigpsf: 360e-3,
     sigace: 275e-3,
     readout: 15.0,
@@ -62,6 +62,7 @@ let etc = new Vue({
     flat: 1.0,
 
     advanced: false,
+    arcsinh: false,
 
     pxd: 1e-5,
     efl: 4.3704,
@@ -74,7 +75,7 @@ let etc = new Vue({
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
-    mag_array: Array(11).fill(0).map((_,i)=>10+0.5*i),
+    mag_array: Array(15).fill().map((_,i)=>9.0+0.5*i),
   },
 
   methods: {
@@ -86,6 +87,10 @@ let etc = new Vue({
       return logu * cosv;
     },
 
+    linear_scale: (e, M, m) => (e - m) / (M - m),
+
+    asinh_scale: (e, M, m) => Math.asinh(e - m) / Math.asinh(M - m),
+
     get_flux: function(Hw) {
       /** convert Hw magnitude to photon
        * the J-band photon flux in
@@ -95,11 +100,15 @@ let etc = new Vue({
        *   - the primary mirror diameter = 36 cm
        *   - the filter range = 1.1-1.6 um
        */
-      return this.throughput * 9.82759297e+08 * Math.pow(10, -0.4 * Hw);
+      return 9.82759297e+08 * Math.pow(10, -0.4 * Hw);
+    },
+
+    get_net_flux: function(Hw) {
+      return this.throughput * this.get_flux(Hw);
     },
 
     get_sigexp: function(Hw) {
-      const Np = this.get_flux(Hw) / this.get_flux(12.5);
+      const Np = this.get_net_flux(Hw) / this.get_flux(12.5);
       const S0 = Math.pow(this.s0 * this.flat, 2.0);
       const sig = this.total_sigma;
       const sr = 2 * Math.pow(this.readout, 2);
@@ -110,18 +119,31 @@ let etc = new Vue({
     },
 
     get_photon: function(Hw) {
-      return this.get_flux(Hw) * this.exptime;
+      return this.get_net_flux(Hw) * this.exptime;
+    },
+
+    get_total_photon: function(Hw) {
+      const arr = this.get_photon_array(Hw);
+      return arr.reduce((s,e) => s + e.reduce((s,e) => s + e,0), 0);
+    },
+
+    get_flat_noise: function(Hw) {
+      const arr = this.get_photon_array(Hw);
+      const fe = this.flat / 100;
+      return Math.sqrt(arr.reduce(
+        (s,e) => s + e.reduce((s,e) => s + Math.pow(fe * e, 2), 0), 0));
     },
 
     get_noise: function(Hw) {
-      let s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
-      let ne = this.background * this.pixel_area * this.exptime;
-      let se = this.get_photon(Hw);
-      return Math.sqrt(s2 + ne + se);
+      const s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
+      const ne = this.background * this.pixel_area * this.exptime;
+      const se = this.get_total_photon(Hw);
+      const fe = Math.pow(this.get_flat_noise(Hw), 2);
+      return Math.sqrt(s2 + ne + se + fe);
     },
 
-    get_snratio: function(Hw) {
-      return this.get_photon(Hw) / this.get_noise(Hw);
+    get_SNR: function(Hw) {
+      return this.get_total_photon(Hw) / this.get_noise(Hw);
     },
 
     get_photon_array: function(Hw) {
@@ -159,10 +181,11 @@ let etc = new Vue({
     },
 
     get_RGB_array: function(adu) {
-      const nmax = Math.max(...adu.flat());
-      const nmin = Math.min(...adu.flat());
+      const M = Math.max(...adu.flat());
+      const m = Math.min(...adu.flat());
+      const scale = this.arcsinh ? this.asinh_scale: this.linear_scale;
       return [...adu].map(e => e.map(function(e) {
-        const v = Math.floor(255 * (e - nmin)/(nmax - nmin));
+        const v = Math.floor(255 * scale(e, M, m));
         return `rgb(${v},${v},${v})`;
       }));
     },
@@ -216,7 +239,7 @@ let etc = new Vue({
     },
 
     total_photon: function() {
-      return this.get_photon(this.Hw);
+      return this.get_total_photon(this.Hw);
     },
 
     peak_photon: function() {
@@ -242,7 +265,7 @@ let etc = new Vue({
     },
 
     sn_ratio: function() {
-      return this.get_snratio(this.Hw);
+      return this.get_SNR(this.Hw);
     },
 
     sig_exp: function() {
@@ -251,7 +274,7 @@ let etc = new Vue({
 
     data_array: function() {
       const sigma = this.mag_array.map(_ => this.get_sigexp(_));
-      const snr = this.mag_array.map(_ => this.get_snratio(_));
+      const snr = this.mag_array.map(_ => this.get_SNR(_));
       return {
          data: [{
             x: this.mag_array,

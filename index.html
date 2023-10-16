@@ -138,15 +138,18 @@
           <span class="unit">mas</span>
 
           <label>Simulated image</label>
-          <div>
-            <canvas id="psf-canvas" width="300" height="300"></canvas>
+          <div id="psf-container"
+              @touchstart="arcsinh = true" @touchend="arcsinh = false">
+            <canvas id="psf-canvas" width="90" height="90"
+                @mouseover="arcsinh = true" @mouseleave="arcsinh = false">
+            </canvas>
           </div>
           <span class="unit"></span>
         </fieldset>
       </form>
       <ul>
-        <li>The flat-fielding error is not implemented yet.</li>
         <li>The pixel-phase error is not implemented.</li>
+        <li>The positional error is not up-to-date.</li>
       </ul>
       <input id="etc-data" type="hidden" :value="JSON.stringify(data_array)" />
     </section>
