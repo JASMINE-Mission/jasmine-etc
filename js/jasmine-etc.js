@@ -48,7 +48,6 @@ let etc = new Vue({
   el: '#app-panel',
 
   data: {
-    N0: 1.0,
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
@@ -108,7 +107,7 @@ let etc = new Vue({
     },
 
     get_sigexp: function(Hw) {
-      const Np = this.get_net_flux(Hw) / (0.5 * this.get_flux(12.5));
+      const Np = this.get_total_photon(Hw) / this.N0;
       const S0 = Math.pow(this.s0 * this.flat, 2.0);
       const sig = this.total_sigma;
       const sr = 2 * Math.pow(this.readout, 2);
@@ -209,8 +208,12 @@ let etc = new Vue({
   },
 
   computed: {
-    Hw: function () {
+    Hw: function() {
       return this.J + (0.08 + (-0.15 + 0.01 * this.JH) * this.JH) * this.JH
+    },
+
+    N0: function() {
+      return 0.5 * this.get_flux(12.5) * 12.5;
     },
 
     fwhm: {
