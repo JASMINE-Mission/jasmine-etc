@@ -40,12 +40,12 @@
           <div class="input-table">
             <label>J-band magnitude</label>
             <etc-input v-model="J"
-             min="0.0" max="25.0"></etc-input>
+                min="0.0" max="25.0"></etc-input>
             <span class="unit">mag</span>
 
             <label>J-H color</label>
             <etc-input v-model="JH"
-             min="-5.0" max="10.0"></etc-input>
+                min="-5.0" max="10.0"></etc-input>
             <span class="unit">mag</span>
           </div>
         </fieldset>
@@ -55,32 +55,32 @@
           <div class="input-table">
             <label>Exposure time</label>
             <etc-input v-model="exptime" precision="1"
-             min="1.0"></etc-input>
+                min="1.0"></etc-input>
             <span class="unit">s</span>
 
             <label>PSF FWHM</label>
             <etc-input v-model="fwhm" precision="3"
-             min="0.0" max="2.0"></etc-input>
+                min="0.0" max="2.0"></etc-input>
             <span class="unit">arcsec</span>
 
             <label>&sigma;<sub>ACE</sub></label>
             <etc-input v-model="sigace" precision="3"
-             min="0.0"></etc-input>
+                min="0.0"></etc-input>
             <span class="unit">arcsec</span>
 
             <label>Readout noise</label>
             <etc-input v-model="readout" precision="1"
-             min="0.0"></etc-input>
+                min="0.0"></etc-input>
             <span class="unit">electron</span>
 
             <label>Dark Current</label>
             <etc-input v-model="dark" precision="1"
-             min="0.0"></etc-input>
+                min="0.0"></etc-input>
             <span class="unit">electron/pix/s</span>
 
             <label>Flat-fielding error</label>
             <etc-input v-model="flat" precision="1"
-             min="0.0" max="5.0"></etc-input>
+                min="0.0" max="5.0"></etc-input>
             <span class="unit">%</span>
           </div>
 
@@ -93,17 +93,17 @@
               :class="{active: advanced}">
             <label>Total throughput</label>
             <etc-input v-model="throughput"
-             min="0.0" max="1.0"></etc-input>
+                min="0.0" max="1.0"></etc-input>
             <span class="unit"></span>
 
             <label>Stray light</label>
             <etc-input v-model="stray" precision="1"
-             min="0.0"></etc-input>
+                min="0.0"></etc-input>
             <span class="unit">electron/pix/s</span>
 
             <label>Diffuse background</label>
             <etc-input v-model="diffuse" precision="1"
-             min="0.0"></etc-input>
+                min="0.0"></etc-input>
             <span class="unit">electron/pix/s</span>
           </div>
         </fieldset>
@@ -114,27 +114,28 @@
           <legend>Output</legend>
 
           <label>Hw-band magnitude</label>
-          <etc-input v-model="Hw" readonly></etc-input>
+          <etc-input v-model="Hw"
+              readonly></etc-input>
           <span class="unit">mag</span>
 
           <label>Photon</label>
           <etc-input v-model="total_photon"
-          readonly></etc-input>
+              readonly></etc-input>
           <span class="unit">photon</span>
 
           <label>Peak photon</label>
           <etc-input v-model="peak_photon"
-          :max="fullwell" readonly></etc-input>
+              :max="fullwell" readonly></etc-input>
           <span class="unit">photon</span>
 
           <label>SN ratio</label>
           <etc-input v-model="sn_ratio"
-          readonly></etc-input>
+              readonly></etc-input>
           <span class="unit"></span>
 
           <label>&sigma;<sub>exp,one</sub></label>
           <etc-input v-model="sig_exp"
-          readonly></etc-input>
+              readonly></etc-input>
           <span class="unit">mas</span>
 
           <label>Simulated image</label>
