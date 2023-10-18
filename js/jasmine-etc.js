@@ -51,7 +51,7 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    throughput: 0.5,
+    throughput: 0.3989,
     sigpsf: 360e-3,
     sigace: 275e-3,
     readout: 15.0,
@@ -66,7 +66,7 @@ let etc = new Vue({
     pxd: 1e-5,
     efl: 4.3704,
     fullwell: 1e5,
-    gain: 3.3,
+    adcbit: 12,
 
     s0: 2.20,
     s1: 6.247,
@@ -138,7 +138,8 @@ let etc = new Vue({
       const ne = this.background * this.pixel_area * this.exptime;
       const se = this.get_total_photon(Hw);
       const fe = Math.pow(this.get_flat_noise(Hw), 2);
-      return Math.sqrt(s2 + ne + se + fe);
+      const qe = Math.pow(this.qw_noise, 2);
+      return Math.sqrt(s2 + ne + se + fe + qe);
     },
 
     get_SNR: function(Hw) {
@@ -213,7 +214,7 @@ let etc = new Vue({
     },
 
     N0: function() {
-      return 0.5 * this.get_flux(12.5) * 12.5;
+      return 0.3989 * this.get_flux(12.5) * 12.5;
     },
 
     fwhm: {
@@ -223,6 +224,10 @@ let etc = new Vue({
       set: function(value) {
         this.sigpsf = value / Math.sqrt(8 * Math.LN2);
       }
+    },
+
+    gain: function() {
+      return this.fullwell / Math.pow(2, this.adcbit);
     },
 
     photon_array: function() {
@@ -261,6 +266,10 @@ let etc = new Vue({
 
     background: function() {
       return this.dark + this.stray + this.diffuse;
+    },
+
+    qw_noise: function() {
+      return this.gain/Math.sqrt(12);
     },
 
     total_noise: function() {

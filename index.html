@@ -105,6 +105,11 @@
             <etc-input v-model="diffuse" precision="1"
                 min="0.0"></etc-input>
             <span class="unit">electron/pix/s</span>
+
+            <label>ADC bitsize</label>
+            <etc-input v-model="adcbit" precision="0"
+                step="2" min="2" max="16"></etc-input>
+            <span class="unit">electron/pix/s</span>
           </div>
         </fieldset>
       </form>
@@ -150,7 +155,6 @@
       </form>
       <ul>
         <li>The pixel-phase error is not implemented.</li>
-        <li>The quantizing error is not implemented.</li>
         <li>The positional error is not up-to-date.</li>
       </ul>
       <input id="etc-data" type="hidden" :value="JSON.stringify(data_array)" />
