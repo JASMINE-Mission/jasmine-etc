@@ -51,7 +51,6 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    throughput: 0.3989,
     sigpsf: 360e-3,
     sigace: 275e-3,
     readout: 15.0,
@@ -60,14 +59,21 @@ let etc = new Vue({
     diffuse: 0.0,
     flat: 1.0,
 
+    adcbit: 12,
+    M2_fraction: 0.35,
+    Tr_filter: 0.9933,
+    Tr_mirror: 0.8258,
+    qe_detector: 0.7481,
+
     advanced: false,
     arcsinh: false,
 
     pxd: 1e-5,
     efl: 4.3704,
     fullwell: 1e5,
-    adcbit: 12,
 
+    throughput0: 1.0,
+    exptime0: 1.0,
     s0: 2.20,
     s1: 6.247,
     s2: 0.14233,
@@ -214,7 +220,7 @@ let etc = new Vue({
     },
 
     N0: function() {
-      return 0.3989 * this.get_flux(12.5) * 12.5;
+      return this.throughput0 * this.get_flux(12.5) * this.exptime0;
     },
 
     fwhm: {
@@ -228,6 +234,11 @@ let etc = new Vue({
 
     gain: function() {
       return this.fullwell / Math.pow(2, this.adcbit);
+    },
+
+    throughput: function() {
+      return this.Tr_filter * this.Tr_mirror
+        * this.qe_detector * (1 - this.M2_fraction);
     },
 
     photon_array: function() {
@@ -359,5 +370,7 @@ let etc = new Vue({
 
   mounted: function() {
     this.drawPSF(this.rgb_array);
+    this.throughput0 = this.throughput;
+    this.exptime0 = this.exptime;
   },
 });
