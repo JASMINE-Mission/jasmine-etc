@@ -91,11 +91,6 @@
           </button>
           <div class="input-table hidden-panel"
               :class="{active: advanced}">
-            <label>Total throughput</label>
-            <etc-input v-model="throughput"
-                min="0.0" max="1.0"></etc-input>
-            <span class="unit"></span>
-
             <label>Stray light</label>
             <etc-input v-model="stray" precision="1"
                 min="0.0"></etc-input>
@@ -106,10 +101,30 @@
                 min="0.0"></etc-input>
             <span class="unit">electron/pix/s</span>
 
+            <label>M2 obscuration</label>
+            <etc-input v-model="M2_fraction" precision="3"
+                min="0.0" max="1.0"></etc-input>
+            <span class="unit"></span>
+
+            <label>Telescope transmittance</label>
+            <etc-input v-model="Tr_mirror" precision="3"
+                min="0.0" max="1.0"></etc-input>
+            <span class="unit"></span>
+
+            <label>Filter transmittance</label>
+            <etc-input v-model="Tr_filter" precision="3"
+                min="0.0" max="1.0"></etc-input>
+            <span class="unit"></span>
+
+            <label>Detector QE</label>
+            <etc-input v-model="qe_detector" precision="3"
+                min="0.0" max="1.0"></etc-input>
+            <span class="unit"></span>
+
             <label>ADC bitsize</label>
             <etc-input v-model="adcbit" precision="0"
                 step="2" min="2" max="16"></etc-input>
-            <span class="unit">electron/pix/s</span>
+            <span class="unit">bit</span>
           </div>
         </fieldset>
       </form>
@@ -132,6 +147,11 @@
           <etc-input v-model="peak_photon"
               :max="fullwell" readonly></etc-input>
           <span class="unit">photon</span>
+
+          <label>Total throughput</label>
+          <etc-input v-model="throughput" precision="3"
+              readonly></etc-input>
+          <span class="unit"></span>
 
           <label>SN ratio</label>
           <etc-input v-model="sn_ratio"
