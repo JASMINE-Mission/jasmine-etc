@@ -182,8 +182,9 @@ let etc = new Vue({
     get_adu: function(electron) {
       const emax = this.fullwell;
       const gain = this.gain;
+      const offset = Math.random();
       return [...electron].map(e => e.map(function(e) {
-        return Math.floor(Math.min(e, emax) / gain + 0.5);
+        return Math.floor(Math.min(e, emax) / gain + 0.5 + offset);
       }));
     },
 
