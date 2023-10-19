@@ -71,6 +71,7 @@ let etc = new Vue({
     pxd: 1e-5,
     efl: 4.3704,
     fullwell: 1e5,
+    margin: 2.0,
 
     throughput0: 1.0,
     exptime0: 1.0,
@@ -233,7 +234,7 @@ let etc = new Vue({
     },
 
     gain: function() {
-      return this.fullwell / Math.pow(2, this.adcbit);
+      return this.margin * this.fullwell / Math.pow(2, this.adcbit);
     },
 
     throughput: function() {
