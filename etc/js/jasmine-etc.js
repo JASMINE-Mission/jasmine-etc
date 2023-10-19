@@ -182,7 +182,7 @@ let etc = new Vue({
       const emax = this.fullwell;
       const gain = this.gain;
       return [...electron].map(e => e.map(function(e) {
-        return Math.floor(Math.min(e, emax) / gain);
+        return Math.floor(Math.min(e, emax) / gain + 0.5);
       }));
     },
 
