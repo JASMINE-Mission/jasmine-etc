@@ -59,7 +59,7 @@ let etc = new Vue({
     diffuse: 0.0,
     flat: 1.0,
 
-    adcbit: 12,
+    adcbit: 14,
     M2_fraction: 0.35,
     Tr_filter: 0.9933,
     Tr_mirror: 0.8258,
@@ -182,9 +182,8 @@ let etc = new Vue({
     get_adu: function(electron) {
       const emax = this.fullwell;
       const gain = this.gain;
-      const offset = Math.random();
       return [...electron].map(e => e.map(function(e) {
-        return Math.floor(Math.min(e, emax) / gain + 0.5 + offset);
+        return Math.floor(Math.min(e, emax) / gain + 0.5);
       }));
     },
 
