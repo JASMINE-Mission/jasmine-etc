@@ -51,7 +51,7 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    sigpsf: 360e-3,
+    sigpsf: 328e-3,
     sigace: 275e-3,
     readout: 15.0,
     dark: 31.0,
@@ -75,9 +75,9 @@ let etc = new Vue({
 
     throughput0: 1.0,
     exptime0: 1.0,
-    s0: 2.20,
-    s1: 6.247,
-    s2: 0.14233,
+    s0: 1.0372e+2,
+    s1: 4.6046e-5,
+    s2: 5.3929e-14,
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
@@ -115,12 +115,14 @@ let etc = new Vue({
 
     get_sigexp: function(Hw) {
       const Np = this.get_total_photon(Hw) / this.N0;
-      const S0 = Math.pow(this.s0 * this.flat, 2.0);
-      const sig = this.total_sigma;
+      const sig = this.total_sigma * 1e3;
       const sr = 2 * Math.pow(this.readout, 2);
       const sc = this.background * this.exptime;
-      const S1 = Math.pow(this.s1, 2) * Math.pow(sig, 2);
-      const S2 = Math.pow(this.s2, 2) * Math.pow(sig, 3) * (sr + sc);
+
+      const S0 = this.s0 * Math.pow(this.flat/100, 2.0) * sig;
+      const S1 = this.s1 * Math.pow(sig, 2);
+      const S2 = this.s2 * (sr + sc) * Math.pow(sig, 4);
+
       return Math.sqrt(S0 + S1 / Np + S2 / Np / Np);
     },
 
