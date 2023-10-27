@@ -75,9 +75,9 @@ let etc = new Vue({
 
     throughput0: 1.0,
     exptime0: 1.0,
-    s0: 1.0372e+2,
-    s1: 4.6046e-5,
-    s2: 5.3929e-14,
+    s0: 4.4541e+4,
+    s1: 5.0168e-5,
+    s2: 5.1230e-14,
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
@@ -119,7 +119,7 @@ let etc = new Vue({
       const sr = 2 * Math.pow(this.readout, 2);
       const sc = this.background * this.exptime;
 
-      const S0 = this.s0 * Math.pow(this.flat/100, 2.0) * sig;
+      const S0 = this.s0 * Math.pow(this.flat/100, 2.0);
       const S1 = this.s1 * Math.pow(sig, 2);
       const S2 = this.s2 * (sr + sc) * Math.pow(sig, 4);
 
