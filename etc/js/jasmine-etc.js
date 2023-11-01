@@ -51,8 +51,8 @@ let etc = new Vue({
     J: 12.50,
     JH: 0.0,
     exptime: 12.5,
-    sigpsf: 274.34e-3,
-    sigace: 275.00e-3,
+    sigpsf: 286.5e-3,
+    sigace: 275.0e-3,
     readout: 15.0,
     dark: 31.0,
     stray: 0.0,
@@ -75,9 +75,9 @@ let etc = new Vue({
 
     throughput0: 1.0,
     exptime0: 1.0,
-    s0: 4.5361e+4,
-    s1: 5.7526e-5,
-    s2: 7.3925e-14,
+    s0: 4.52e+4,
+    s1: 5.58e-5,
+    s2: 6.82e-14,
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
