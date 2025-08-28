@@ -81,12 +81,14 @@ let etc = new Vue({
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
-    mag_array: Array(15).fill().map((_,i)=>9.0+0.5*i),
+
+    // Magnitude range controls for the plot
+    mag_min: 9.0,
+    mag_max: 16.0,
+    mag_step: 0.5,
   },
 
   methods: {
-    cdf: (x,s) => 0.5 + 0.5 * math.erf(x / Math.sqrt(2*s)),
-
     randn: () => {
       const logu = Math.sqrt(-2.0 * Math.log(1.0 - Math.random()));
       const cosv = Math.cos(2.0 * Math.PI * Math.random());
@@ -97,78 +99,7 @@ let etc = new Vue({
 
     asinh_scale: (e, M, m) => Math.asinh(e - m) / Math.asinh(M - m),
 
-    get_flux: function(Hw) {
-      /** convert Hw magnitude to photon
-       * the J-band photon flux in
-       *   - https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
-       * is tentatively used to calculate the Hw-band photon rate.
-       * convert to the photon rate in the Hw-band assuming
-       *   - the primary mirror diameter = 36 cm
-       *   - the filter range = 1.1-1.6 um
-       */
-      return 9.82759297e+08 * Math.pow(10, -0.4 * Hw);
-    },
-
-    get_net_flux: function(Hw) {
-      return this.throughput * this.get_flux(Hw);
-    },
-
-    get_sigexp: function(Hw) {
-      const Np = this.get_total_photon(Hw) / this.N0;
-      const sig = this.total_sigma * 1e3;
-      const sr = 2 * Math.pow(this.readout, 2);
-      const sc = this.background * this.exptime;
-
-      const S0 = this.s0 * Math.pow(this.flat/100, 2.0);
-      const S1 = this.s1 * Math.pow(sig, 2);
-      const S2 = this.s2 * (sr + sc) * Math.pow(sig, 4);
-
-      return Math.sqrt(S0 + S1 / Np + S2 / Np / Np);
-    },
-
-    get_photon: function(Hw) {
-      return this.get_net_flux(Hw) * this.exptime;
-    },
-
-    get_total_photon: function(Hw) {
-      const arr = this.get_photon_array(Hw);
-      return arr.reduce((s,e) => s + e.reduce((s,e) => s + e,0), 0);
-    },
-
-    get_flat_noise: function(Hw) {
-      const arr = this.get_photon_array(Hw);
-      const fe = this.flat / 100;
-      return Math.sqrt(arr.reduce(
-        (s,e) => s + e.reduce((s,e) => s + Math.pow(fe * e, 2), 0), 0));
-    },
-
-    get_noise: function(Hw) {
-      const s2 = 2 * Math.pow(this.readout, 2) * this.pixel_area;
-      const ne = this.background * this.pixel_area * this.exptime;
-      const se = this.get_total_photon(Hw);
-      const fe = Math.pow(this.get_flat_noise(Hw), 2);
-      const qe = Math.pow(this.qw_noise, 2);
-      return Math.sqrt(s2 + ne + se + fe + qe);
-    },
-
-    get_SNR: function(Hw) {
-      return this.get_total_photon(Hw) / this.get_noise(Hw);
-    },
-
-    get_photon_array: function(Hw) {
-      let array = [...Array(15)].map(e => Array(15).fill());
-
-      const N = this.get_photon(Hw);
-      const w = this.total_sigma / this.pixel_scale;
-      for (let [j, y] of this.ny.entries()) {
-        for (let [i, x] of this.nx.entries()) {
-          const fy = this.cdf(y + 0.5, w) - this.cdf(y - 0.5, w);
-          const fx = this.cdf(x + 0.5, w) - this.cdf(x - 0.5, w);
-          array[j][i] = N * fy * fx;
-        }
-      }
-      return array;
-    },
+    // UI-side noise and rendering helpers remain here
 
     add_noise: function(photon) {
       const rn = 2 * Math.pow(this.readout, 2);
@@ -223,7 +154,7 @@ let etc = new Vue({
     },
 
     N0: function() {
-      return this.throughput0 * this.get_flux(12.5) * this.exptime0;
+      return (this.throughput0 || ETCCore.throughput(this)) * ETCCore.get_flux(12.5) * (this.exptime0 || this.exptime);
     },
 
     fwhm: {
@@ -236,16 +167,15 @@ let etc = new Vue({
     },
 
     gain: function() {
-      return this.margin * this.fullwell / Math.pow(2, this.adcbit);
+      return ETCCore.gain(this);
     },
 
     throughput: function() {
-      return this.Tr_filter * this.Tr_mirror
-        * this.qe_detector * (1 - this.M2_fraction);
+      return ETCCore.throughput(this);
     },
 
     photon_array: function() {
-      return this.get_photon_array(this.Hw);
+      return ETCCore.get_photon_array(this.Hw, this);
     },
 
     adu_array: function() {
@@ -256,51 +186,59 @@ let etc = new Vue({
       return this.get_RGB_array(this.adu_array);
     },
 
+    mag_array: function() {
+      const lo = Math.min(this.mag_min, this.mag_max);
+      const hi = Math.max(this.mag_min, this.mag_max);
+      const step = (this.mag_step > 0) ? this.mag_step : 0.5;
+      // Guard against too many points for performance
+      const maxPoints = 60;
+      const count = Math.max(2, Math.min(maxPoints, Math.floor((hi - lo) / step) + 1));
+      return Array(count).fill().map((_, i) => lo + i * step);
+    },
+
     total_sigma: function() {
-      return Math.sqrt(this.sigpsf**2 + this.sigace**2);
+      return ETCCore.totalSigma(this.sigpsf, this.sigace);
     },
 
     total_photon: function() {
-      return this.get_total_photon(this.Hw);
+      return ETCCore.get_total_photon(this.Hw, this);
     },
 
     peak_photon: function() {
-      return Math.max(...this.photon_array.flat());
+      return ETCCore.peak_photon(this.Hw, this);
     },
 
     pixel_scale: function() {
-      return Math.atan2(this.pxd, this.efl) / Math.PI * 180.0 * 3600;
+      return ETCCore.pixelScale(this.pxd, this.efl);
     },
 
     pixel_area: function() {
-      const sigpix = this.total_sigma / this.pixel_scale;
-      const aper = 2 * Math.sqrt(8 * Math.LN2) * sigpix;
-      return 4 * Math.PI * aper * aper;
+      return ETCCore.pixel_area(this);
     },
 
     background: function() {
-      return this.dark + this.stray + this.diffuse;
+      return ETCCore.background(this);
     },
 
     qw_noise: function() {
-      return this.gain/Math.sqrt(12);
+      return ETCCore.qw_noise(this);
     },
 
     total_noise: function() {
-      return this.get_noise(this.Hw)
+      return ETCCore.get_noise(this.Hw, this);
     },
 
     sn_ratio: function() {
-      return this.get_SNR(this.Hw);
+      return ETCCore.get_SNR(this.Hw, this);
     },
 
     sig_exp: function() {
-      return this.get_sigexp(this.Hw);
+      return ETCCore.get_sigexp(this.Hw, this);
     },
 
     data_array: function() {
-      const sigma = this.mag_array.map(_ => this.get_sigexp(_));
-      const snr = this.mag_array.map(_ => this.get_SNR(_));
+      const sigma = this.mag_array.map(_ => ETCCore.get_sigexp(_, this));
+      const snr = this.mag_array.map(_ => ETCCore.get_SNR(_, this));
       return {
          data: [{
             x: this.mag_array,
