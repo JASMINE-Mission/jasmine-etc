@@ -148,10 +148,11 @@ input[data-invalid] {
 }
 
 /* Range slider styling for magnitude controls */
-.range {
+input.range {
   -webkit-appearance: none;
   appearance: none;
   margin: 0;
+  padding: 0;
   /* match other inputs: border 2px, square corners, similar height */
   --h: 19px;
   --thumb-w: 0px;
@@ -170,13 +171,13 @@ input[data-invalid] {
 }
 
 /* WebKit */
-.range::-webkit-slider-runnable-track {
+input.range::-webkit-slider-runnable-track {
   -webkit-appearance: none;
   background: transparent;
   border: none;
   height: 100%;
 }
-.range::-webkit-slider-thumb {
+input.range::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: var(--thumb-w);
   height: var(--thumb-h);
@@ -188,19 +189,19 @@ input[data-invalid] {
 }
 
 /* Firefox */
-.range::-moz-range-track {
+input.range::-moz-range-track {
   height: var(--h);
   background: #fff;
-  border: 2px solid lightgray;
+  border: none;
   border-radius: 0;
 }
-.range::-moz-range-progress {
+input.range::-moz-range-progress {
   height: var(--h);
   background: #eee;
   border: none;
   border-radius: 0;
 }
-.range::-moz-range-thumb {
+input.range::-moz-range-thumb {
   width: var(--thumb-w);
   height: var(--thumb-h);
   background: #666;
