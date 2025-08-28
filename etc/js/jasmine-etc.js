@@ -101,7 +101,14 @@ let etc = new Vue({
     },
     // Reseed noise generation for simulated image
     reseed: function() {
-      // Simple evolving seed; avoids needing crypto
+      // Algorithm: update the seed with a lightweight 32-bit LCG-like step.
+      // - (seed << 5) - seed  == seed * 31 (fast multiply via shifts)
+      // - + (1 + now)        adds a time-based increment so each click/tap
+      //                      yields a different sequence without strong entropy
+      // - >>> 0              forces unsigned 32-bit wraparound to keep state
+      //                      in [0, 2^32), which our PRNG expects
+      // This keeps sequences deterministic for a given seed while making it
+      // easy to “jitter” the stream without using crypto APIs.
       const now = Date.now() >>> 0;
       this.seed = ((this.seed << 5) - this.seed + 1 + now) >>> 0;
     },
