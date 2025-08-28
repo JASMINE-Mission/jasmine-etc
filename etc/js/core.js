@@ -28,7 +28,8 @@
     return sign * y;
   }
 
-  // NOTE: Matches existing implementation: parameter s is used as (variance-like) in denominator sqrt(2*s)
+  // Cumulative distribution function (CDF) for a normal distribution with mean 0 and variance s.
+  // Parameter s is the variance (i.e., standard deviation squared) of the distribution.
   function cdf(x, s) {
     return 0.5 + 0.5 * erf(x / Math.sqrt(2 * s));
   }
