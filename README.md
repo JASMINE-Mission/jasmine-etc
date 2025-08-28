@@ -1,5 +1,5 @@
 # JASMINE ETC
-[![pages-build-deployment](https://github.com/JASMINE-Mission/jasmine-etc/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/JASMINE-Mission/jasmine-etc/actions/workflows/pages/pages-build-deployment)
+[![pages-build-deployment](https://github.com/JASMINE-Mission/jasmine-etc/actions/workflows/pages/pages-build-deployment/badge.svg?branch=gh-pages)](https://github.com/JASMINE-Mission/jasmine-etc/actions/workflows/pages/pages-build-deployment)
 
 A preliminary Exposure Time Calculator for JASMINE.
 
