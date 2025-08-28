@@ -138,10 +138,10 @@
                 :style="{'--min': 13, '--max': 20, '--val': mag_max}" />
             <span class="unit">{{ mag_max.toFixed(1) }} mag</span>
 
-            <label>Magnitude step</label>
-            <etc-input v-model="mag_step" precision="2"
-                min="0.01" max="10.0"></etc-input>
-            <span class="unit">mag</span>
+            <label>Magnitude points</label>
+            <etc-input v-model="mag_points" precision="0"
+                min="3" max="101"></etc-input>
+            <span class="unit">points</span>
           </div>
         </fieldset>
       </form>

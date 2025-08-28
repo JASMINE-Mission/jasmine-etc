@@ -60,7 +60,7 @@ Key functions (selection): `hwFromJ`, `throughput`, `pixelScale`, `totalSigma`, 
   - Magnitude range for the graph (Hw x-axis):
     - Min slider: [5, 12], step 0.1
     - Max slider: [13, 20], step 0.1
-    - Step input: sampling step in mag (default 0.5, capped to ≤60 points)
+    - Points input: number of magnitude points (min 3, max 101). The x-array contains exactly that many points, including both endpoints, with floating‑point‑safe spacing.
 - Simulated PSF image is drawn on a 15×15 canvas grid with optional asinh scaling on hover.
 
 ## Tests
