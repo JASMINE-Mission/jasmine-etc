@@ -146,3 +146,64 @@ input[data-invalid] {
 #etc ul {
   padding-left: 1.0em;
 }
+
+/* Range slider styling for magnitude controls */
+.range {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  /* match other inputs: border 2px, square corners, similar height */
+  --h: 19px;
+  --thumb-w: 0px;
+  --thumb-h: calc(var(--h) - 6px);
+  height: var(--h);
+  border: 2px solid lightgray;
+  border-radius: 0;
+  background:
+    linear-gradient(#eee, #eee) 0/var(--sx, 0%) 100% no-repeat,
+    #fff;
+  /* compute filled size: --sx as percent of track */
+  --min: 0;
+  --max: 100;
+  --val: 0;
+  --sx: calc((var(--val) - var(--min)) * 100% / (var(--max) - var(--min)));
+}
+
+/* WebKit */
+.range::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+  border: none;
+  height: 100%;
+}
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--thumb-w);
+  height: var(--thumb-h);
+  background: #666;
+  border: none;
+  /* center thumb vertically within outlined track */
+  margin-top: calc((var(--h) - var(--thumb-h)) / 2 - 1px);
+  cursor: pointer;
+}
+
+/* Firefox */
+.range::-moz-range-track {
+  height: var(--h);
+  background: #fff;
+  border: 2px solid lightgray;
+  border-radius: 0;
+}
+.range::-moz-range-progress {
+  height: var(--h);
+  background: #eee;
+  border: none;
+  border-radius: 0;
+}
+.range::-moz-range-thumb {
+  width: var(--thumb-w);
+  height: var(--thumb-h);
+  background: #666;
+  border: none;
+  cursor: pointer;
+}
