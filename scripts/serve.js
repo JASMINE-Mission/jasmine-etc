@@ -22,7 +22,10 @@ function send(res, status, body, headers = {}) {
 
 function handler(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
-  if (urlPath === '/' || urlPath === '') urlPath = '/etc/index.html';
+  // Redirect root to /etc/ to ensure relative paths resolve (css/js)
+  if (urlPath === '/' || urlPath === '') {
+    return send(res, 302, 'Found', { Location: '/etc/' });
+  }
   // Normalize and resolve the file path
   const fp = path.resolve(root, '.' + urlPath);
 
@@ -34,7 +37,14 @@ function handler(req, res) {
   fs.stat(fp, (err, stat) => {
     if (err) return send(res, 404, 'Not Found');
     let filePath = fp;
-    if (stat.isDirectory()) filePath = path.join(fp, 'index.html');
+    // For directories, enforce trailing slash and serve index.html
+    if (stat.isDirectory()) {
+      if (!urlPath.endsWith('/')) {
+        // Preserve directory path with a trailing slash
+        return send(res, 302, 'Found', { Location: urlPath + '/' });
+      }
+      filePath = path.join(fp, 'index.html');
+    }
     const ext = path.extname(filePath).toLowerCase();
     const type = mime[ext] || 'application/octet-stream';
     const stream = fs.createReadStream(filePath);
@@ -47,4 +57,3 @@ function handler(req, res) {
 http.createServer(handler).listen(port, () => {
   console.log(`Serving ${root} at http://localhost:${port}/ (default to /etc/index.html)`);
 });
-
