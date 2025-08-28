@@ -121,7 +121,9 @@ let etc = new Vue({
       const u = this._mulberry32(seed);
       // Box-Muller transform using local PRNG
       const randn = () => {
-        const u1 = 1 - u();
+        let u1 = u();
+        // Ensure u1 is never 0 (which would cause log(0)); use a small epsilon if so
+        if (u1 === 0) u1 = Number.EPSILON;
         const u2 = u();
         return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
       };
