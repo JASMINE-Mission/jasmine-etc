@@ -17,19 +17,20 @@
   function erf(x) {
     var sign = x < 0 ? -1 : 1;
     x = Math.abs(x);
-    var a1 = 0.254829592,
-      a2 = -0.284496736,
-      a3 = 1.421413741,
-      a4 = -1.453152027,
-      a5 = 1.061405429,
-      p = 0.3275911;
+    var a1 = 0.254829592;
+    var a2 = -0.284496736;
+    var a3 = 1.421413741;
+    var a4 = -1.453152027;
+    var a5 = 1.061405429;
+    var p = 0.3275911;
     var t = 1.0 / (1.0 + p * x);
-    var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1)
+      * t * Math.exp(-x * x);
     return sign * y;
   }
 
-  // Cumulative distribution function (CDF) for a normal distribution with mean 0 and variance s.
-  // Parameter s is the variance (i.e., standard deviation squared) of the distribution.
+  // Cumulative distribution function (CDF) for a normal distribution with
+  // mean 0 and variance s. Parameter s is the variance of the distribution.
   function cdf(x, s) {
     return 0.5 + 0.5 * erf(x / Math.sqrt(2 * s));
   }
@@ -41,7 +42,8 @@
 
   function throughput(params) {
     return (
-      params.Tr_filter * params.Tr_mirror * params.qe_detector * (1 - params.M2_fraction)
+      params.Tr_filter * params.Tr_mirror
+        * params.qe_detector * (1 - params.M2_fraction)
     );
   }
 
@@ -55,6 +57,16 @@
 
   // Photon flux for magnitude Hw (kept identical constant)
   function get_flux(Hw) {
+    /**
+     * The Hw-band zeromag photon rate is tentatively converted from
+     * the J-band zeromag photon rate assuming
+     *
+     *   - the primary mirror diameter = 36 cm
+     *   - the filter range = 1.1-1.6 um
+     *
+     * The J-band zeromag photon rate is obtained from
+     *   - https://www.astronomy.ohio-state.edu/martini.10/usefuldata.html
+     */
     return 9.82759297e+08 * Math.pow(10, -0.4 * Hw);
   }
 
@@ -159,16 +171,21 @@
   }
 
   function get_sigexp(Hw, params) {
-    var thr0 = typeof params.throughput0 === 'number' ? params.throughput0 : throughput(params);
-    var exp0 = typeof params.exptime0 === 'number' ? params.exptime0 : params.exptime;
+    var thr0 = typeof params.throughput0 === 'number'
+        ? params.throughput0 : throughput(params);
+    var exp0 = typeof params.exptime0 === 'number'
+        ? params.exptime0 : params.exptime;
     var N0 = thr0 * get_flux(12.5) * exp0;
     var Np = get_total_photon(Hw, params) / N0;
     var sig = totalSigma(params.sigpsf, params.sigace) * 1e3; // mas
     var sr = 2 * Math.pow(params.readout, 2);
     var sc = background(params) * params.exptime;
-    var S0 = (params.s0 != null ? params.s0 : 4.52e+4) * Math.pow(params.flat / 100, 2.0);
-    var S1 = (params.s1 != null ? params.s1 : 5.58e-5) * Math.pow(sig, 2);
-    var S2 = (params.s2 != null ? params.s2 : 6.82e-14) * (sr + sc) * Math.pow(sig, 4);
+    var S0 = (params.s0 != null ? params.s0 : 4.52e+4)
+        * Math.pow(params.flat / 100, 2.0);
+    var S1 = (params.s1 != null ? params.s1 : 5.58e-5)
+        * Math.pow(sig, 2);
+    var S2 = (params.s2 != null ? params.s2 : 6.82e-14)
+        * (sr + sc) * Math.pow(sig, 4);
     return Math.sqrt(S0 + S1 / Np + S2 / (Np * Np));
   }
 
