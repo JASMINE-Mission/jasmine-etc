@@ -67,6 +67,8 @@ let etc = new Vue({
 
     advanced: false,
     arcsinh: false,
+    // Seed for simulated image noise; change to re-generate image
+    seed: 1,
 
     pxd: 1e-5,
     efl: 4.3704,
@@ -85,14 +87,30 @@ let etc = new Vue({
     // Magnitude range controls for the plot
     mag_min: 9.0,
     mag_max: 16.0,
-    mag_step: 0.5,
+    // Number of points to sample across [min, max]
+    mag_points: 15,
   },
 
   methods: {
-    randn: () => {
-      const logu = Math.sqrt(-2.0 * Math.log(1.0 - Math.random()));
-      const cosv = Math.cos(2.0 * Math.PI * Math.random());
-      return logu * cosv;
+    // Mulberry32 PRNG factory for deterministic uniform [0,1)
+    _mulberry32: (a) => function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    },
+    // Reseed noise generation for simulated image
+    reseed: function() {
+      // Algorithm: update the seed with a lightweight 32-bit LCG-like step.
+      // - (seed << 5) - seed  == seed * 31 (fast multiply via shifts)
+      // - + (1 + now)        adds a time-based increment so each click/tap
+      //                      yields a different sequence without strong entropy
+      // - >>> 0              forces unsigned 32-bit wraparound to keep state
+      //                      in [0, 2^32), which our PRNG expects
+      // This keeps sequences deterministic for a given seed while making it
+      // easy to “jitter” the stream without using crypto APIs.
+      const now = Date.now() >>> 0;
+      this.seed = ((this.seed << 5) - this.seed + 1 + now) >>> 0;
     },
 
     linear_scale: (e, M, m) => (e - m) / (M - m),
@@ -104,11 +122,21 @@ let etc = new Vue({
     add_noise: function(photon) {
       const rn = 2 * Math.pow(this.readout, 2);
       const bn = this.background * this.exptime;
-      const randn = this.randn;
       const flat = this.flat;
+      // Create a local PRNG from the current seed
+      const seed = (this.seed >>> 0) || 1;
+      const u = this._mulberry32(seed);
+      // Box-Muller transform using local PRNG
+      const randn = () => {
+        let u1 = u();
+        // Ensure u1 is never 0 (which would cause log(0)); use a small epsilon if so
+        if (u1 === 0) u1 = Number.EPSILON;
+        const u2 = u();
+        return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      };
       return [...photon].map(e => e.map(function(e) {
-          const fp = 1.0 + (flat / 100) * randn();
-          return fp * e + Math.sqrt(rn + bn) * randn();
+        const fp = 1.0 + (flat / 100) * randn();
+        return fp * e + Math.sqrt(rn + bn) * randn();
       }));
     },
 
@@ -179,6 +207,8 @@ let etc = new Vue({
     },
 
     adu_array: function() {
+      // Depend on seed so reseeding triggers recomputation
+      const _seed = this.seed;
       return this.get_adu(this.add_noise(this.photon_array));
     },
 
@@ -189,11 +219,15 @@ let etc = new Vue({
     mag_array: function() {
       const lo = Math.min(this.mag_min, this.mag_max);
       const hi = Math.max(this.mag_min, this.mag_max);
-      const step = (this.mag_step > 0) ? this.mag_step : 0.5;
-      // Guard against too many points for performance
-      const maxPoints = 60;
-      const count = Math.max(2, Math.min(maxPoints, Math.floor((hi - lo) / step) + 1));
-      return Array(count).fill().map((_, i) => lo + i * step);
+      // Use P points across [lo, hi] (P in [3, 101])
+      const P = Math.max(3, Math.min(101, Math.round(this.mag_points || 3)));
+      const N = Math.max(1, P - 1);
+      const count = P;
+      const eff = (N > 0) ? (hi - lo) / N : 0;
+      const arr = Array(count).fill().map((_, i) => lo + i * eff);
+      if (arr.length > 0) arr[0] = lo;
+      if (arr.length > 1) arr[arr.length - 1] = hi;
+      return arr;
     },
 
     total_sigma: function() {
