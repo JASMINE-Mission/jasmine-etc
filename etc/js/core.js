@@ -2,13 +2,13 @@
  JASMINE ETC core calculation module
  - Pure functions mirroring the logic in etc/js/jasmine-etc.js
  - No dependency on Vue or math.js (implements erf internally)
- - UMD-style export: window.JETCCore (browser) or module.exports (Node)
+ - UMD-style export: window.ETCCore (browser) or module.exports (Node)
 */
 (function (root, factory) {
   if (typeof module === 'object' && typeof module.exports === 'object') {
     module.exports = factory();
   } else {
-    root.JETCCore = factory();
+    root.ETCCore = factory();
   }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
@@ -235,4 +235,3 @@
     defaultParams: defaultParams,
   };
 });
-
