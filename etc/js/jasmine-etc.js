@@ -67,6 +67,8 @@ let etc = new Vue({
 
     advanced: false,
     arcsinh: false,
+    // Seed for simulated image noise; change to re-generate image
+    seed: 1,
 
     pxd: 1e-5,
     efl: 4.3704,
@@ -90,10 +92,18 @@ let etc = new Vue({
   },
 
   methods: {
-    randn: () => {
-      const logu = Math.sqrt(-2.0 * Math.log(1.0 - Math.random()));
-      const cosv = Math.cos(2.0 * Math.PI * Math.random());
-      return logu * cosv;
+    // Mulberry32 PRNG factory for deterministic uniform [0,1)
+    _mulberry32: (a) => function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    },
+    // Reseed noise generation for simulated image
+    reseed: function() {
+      // Simple evolving seed; avoids needing crypto
+      const now = Date.now() >>> 0;
+      this.seed = ((this.seed << 5) - this.seed + 1 + now) >>> 0;
     },
 
     linear_scale: (e, M, m) => (e - m) / (M - m),
@@ -105,11 +115,19 @@ let etc = new Vue({
     add_noise: function(photon) {
       const rn = 2 * Math.pow(this.readout, 2);
       const bn = this.background * this.exptime;
-      const randn = this.randn;
       const flat = this.flat;
+      // Create a local PRNG from the current seed
+      const seed = (this.seed >>> 0) || 1;
+      const u = this._mulberry32(seed);
+      // Box-Muller transform using local PRNG
+      const randn = () => {
+        const u1 = 1 - u();
+        const u2 = u();
+        return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+      };
       return [...photon].map(e => e.map(function(e) {
-          const fp = 1.0 + (flat / 100) * randn();
-          return fp * e + Math.sqrt(rn + bn) * randn();
+        const fp = 1.0 + (flat / 100) * randn();
+        return fp * e + Math.sqrt(rn + bn) * randn();
       }));
     },
 
@@ -180,6 +198,8 @@ let etc = new Vue({
     },
 
     adu_array: function() {
+      // Depend on seed so reseeding triggers recomputation
+      const _seed = this.seed;
       return this.get_adu(this.add_noise(this.photon_array));
     },
 

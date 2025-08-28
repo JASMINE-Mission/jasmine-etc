@@ -184,7 +184,8 @@
           <div id="psf-container"
               @touchstart="arcsinh = true" @touchend="arcsinh = false">
             <canvas id="psf-canvas" width="90" height="90"
-                @mouseover="arcsinh = true" @mouseleave="arcsinh = false">
+                @mouseover="arcsinh = true" @mouseleave="arcsinh = false"
+                @click="reseed" @touchend.prevent="reseed">
             </canvas>
           </div>
           <span class="unit"></span>
