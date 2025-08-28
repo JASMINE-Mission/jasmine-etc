@@ -23,10 +23,11 @@ function send(res, status, body, headers = {}) {
 function handler(req, res) {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/' || urlPath === '') urlPath = '/etc/index.html';
-  const fp = path.join(root, urlPath);
+  // Normalize and resolve the file path
+  const fp = path.resolve(root, '.' + urlPath);
 
   // Prevent path traversal
-  if (!fp.startsWith(root)) {
+  if (!fp.startsWith(root + path.sep)) {
     return send(res, 400, 'Bad Request');
   }
 
