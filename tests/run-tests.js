@@ -1,19 +1,26 @@
-const { run } = require('./core.test.js');
+const { tests } = require('./core.test.js');
 
-function main() {
+function runSuite() {
   const failures = [];
-  try {
-    run();
-    console.log('core.test.js: PASS');
-  } catch (e) {
-    console.error('core.test.js: FAIL');
-    console.error(e && e.stack ? e.stack : e);
-    failures.push(e);
-  }
+  let passed = 0;
+  const total = tests.length;
 
+  console.log(`Running ${total} test(s)...`);
+  tests.forEach((t, i) => {
+    const label = `[${i + 1}/${total}] ${t.name}`;
+    try {
+      t.fn();
+      passed++;
+      console.log(`${label}: PASS`);
+    } catch (e) {
+      console.error(`${label}: FAIL`);
+      console.error(e && e.stack ? e.stack : e);
+      failures.push({ name: t.name, error: e });
+    }
+  });
+
+  console.log(`\nSummary: ${passed}/${total} passed, ${failures.length} failed`);
   if (failures.length) process.exit(1);
-  console.log('All tests passed.');
 }
 
-main();
-
+runSuite();
