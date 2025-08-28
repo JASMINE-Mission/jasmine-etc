@@ -81,7 +81,11 @@ let etc = new Vue({
 
     nx: Array(15).fill().map((e, i) => -7 + i),
     ny: Array(15).fill().map((e, i) => -7 + i),
-    mag_array: Array(15).fill().map((_,i)=>9.0+0.5*i),
+
+    // Magnitude range controls for the plot
+    mag_min: 9.0,
+    mag_max: 16.0,
+    mag_step: 0.5,
   },
 
   methods: {
@@ -180,6 +184,16 @@ let etc = new Vue({
 
     rgb_array: function() {
       return this.get_RGB_array(this.adu_array);
+    },
+
+    mag_array: function() {
+      const lo = Math.min(this.mag_min, this.mag_max);
+      const hi = Math.max(this.mag_min, this.mag_max);
+      const step = (this.mag_step > 0) ? this.mag_step : 0.5;
+      // Guard against too many points for performance
+      const maxPoints = 60;
+      const count = Math.max(2, Math.min(maxPoints, Math.floor((hi - lo) / step) + 1));
+      return Array(count).fill().map((_, i) => lo + i * step);
     },
 
     total_sigma: function() {

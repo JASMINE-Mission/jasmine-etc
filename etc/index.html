@@ -125,6 +125,21 @@
             <etc-input v-model="adcbit" precision="0"
                 step="1" min="2" max="18"></etc-input>
             <span class="unit">bit</span>
+
+            <label>Magnitude min</label>
+            <etc-input v-model="mag_min" precision="2"
+                min="-5.0" max="40.0"></etc-input>
+            <span class="unit">mag</span>
+
+            <label>Magnitude max</label>
+            <etc-input v-model="mag_max" precision="2"
+                min="-5.0" max="40.0"></etc-input>
+            <span class="unit">mag</span>
+
+            <label>Magnitude step</label>
+            <etc-input v-model="mag_step" precision="2"
+                min="0.01" max="10.0"></etc-input>
+            <span class="unit">mag</span>
           </div>
         </fieldset>
       </form>
