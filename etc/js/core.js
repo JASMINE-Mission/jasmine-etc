@@ -30,9 +30,9 @@
   }
 
   // Cumulative distribution function (CDF) for a normal distribution with
-  // mean 0 and variance s. Parameter s is the variance of the distribution.
+  // mean 0 and standard deviation s.
   function cdf(x, s) {
-    return 0.5 + 0.5 * erf(x / Math.sqrt(2 * s));
+    return 0.5 + 0.5 * erf(x / Math.sqrt(2 * s * s));
   }
 
   // Magnitude conversion J,JH -> Hw (kept identical to app formula)
@@ -89,15 +89,15 @@
     var ny = params.ny || buildGrid(15);
     var N = get_photon(Hw, params);
     var sig = totalSigma(params.sigpsf, params.sigace);
-    var w = sig / pixelScale(params.pxd, params.efl);
+    var s = sig / pixelScale(params.pxd, params.efl);
     var arr = new Array(ny.length);
     for (var j = 0; j < ny.length; j++) {
       arr[j] = new Array(nx.length);
       var y = ny[j];
-      var fy = cdf(y + 0.5, w) - cdf(y - 0.5, w);
+      var fy = cdf(y + 0.5, s) - cdf(y - 0.5, s);
       for (var i = 0; i < nx.length; i++) {
         var x = nx[i];
-        var fx = cdf(x + 0.5, w) - cdf(x - 0.5, w);
+        var fx = cdf(x + 0.5, s) - cdf(x - 0.5, s);
         arr[j][i] = N * fy * fx;
       }
     }
